@@ -258,7 +258,8 @@ def rota_comparar_investimento_emprestimo():
             "total_investido_pelo_usuario": resultado_investimento.get('total_investido_pelo_usuario'),
             "total_rendimentos": resultado_investimento.get('total_rendimentos'),
             "mensagem": resultado_investimento.get('mensagem'),
-            "taxa_anual_aplicada": round(taxa_investimento_anual_percentual, 2)
+            "taxa_anual_aplicada": round(taxa_investimento_anual_percentual, 2),
+            "investimento_mensal": investimento_mensal
         },
         "emprestimo": {
             "principal": valor_desejado,

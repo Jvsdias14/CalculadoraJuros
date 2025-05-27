@@ -71,8 +71,8 @@ function Resultado({ resultado, tipo }) {
           {/* Resultado do Investimento */}
           <div className="p-4 bg-white rounded shadow">
             <h4 className="text-lg font-medium mb-2 text-purple-700">Cenário de Investimento:</h4>
-            <p><strong>Valor Desejado:</strong> {formatCurrency(resultado.emprestimo.principal)}</p>
-            <p><strong>Investindo {formatCurrency(resultado.investimento.total_investido_pelo_usuario / resultado.investimento.meses)} por mês (Taxa aplicada: {resultado.investimento.taxa_anual_aplicada}% a.a.):</strong></p>
+            <p><strong>Valor Desejado:</strong> {formatCurrency(resultado.emprestimo.principal)}</p>            
+            <p><strong>Investindo {formatCurrency(resultado.investimento.investimento_mensal)} por mês (Taxa aplicada: {resultado.investimento.taxa_anual_aplicada}% a.a.):</strong></p>
             <p className="ml-4"> - Tempo para atingir: <span className="font-bold">{resultado.investimento.meses_para_atingir} meses</span></p>
             <p className="ml-4"> - Total Investido pelo Usuário: <span className="font-bold">{formatCurrency(resultado.investimento.total_investido_pelo_usuario)}</span></p>
             <p className="ml-4"> - Total de Rendimentos Ganhos: <span className="font-bold text-green-700">{formatCurrency(resultado.investimento.total_rendimentos)}</span></p>
