@@ -7,7 +7,7 @@ function JurosCompostosForm({ onCalcular }) {
   const [periodo, setPeriodo] = useState('');
 
   const handleSubmit = (event) => {
-    event.preventDefault(); // Impede o recarregamento da página
+    event.preventDefault();
     onCalcular({
       principal: parseFloat(principal),
       taxa: parseFloat(taxa),
@@ -16,10 +16,10 @@ function JurosCompostosForm({ onCalcular }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 bg-white shadow rounded-lg space-y-3">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-gray-700 text-sm font-bold mb-1" htmlFor="principalJuros">
-          Principal:
+          Capital Inicial (R$):
         </label>
         <input
           type="number"
@@ -32,7 +32,7 @@ function JurosCompostosForm({ onCalcular }) {
       </div>
       <div>
         <label className="block text-gray-700 text-sm font-bold mb-1" htmlFor="taxaJuros">
-          Taxa de Juros (% ao período):
+          Taxa de Juros (% ao mês):
         </label>
         <input
           type="number"
@@ -45,7 +45,7 @@ function JurosCompostosForm({ onCalcular }) {
       </div>
       <div>
         <label className="block text-gray-700 text-sm font-bold mb-1" htmlFor="periodoJuros">
-          Período:
+          Período (meses):
         </label>
         <input
           type="number"
@@ -60,7 +60,7 @@ function JurosCompostosForm({ onCalcular }) {
         type="submit"
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
       >
-        Calcular Juros Compostos
+        Calcular
       </button>
     </form>
   );

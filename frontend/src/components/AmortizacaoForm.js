@@ -5,7 +5,7 @@ function AmortizacaoForm({ onCalcular }) {
   const [principal, setPrincipal] = useState('');
   const [taxa, setTaxa] = useState('');
   const [periodo, setPeriodo] = useState('');
-  const [tipoAmortizacao, setTipoAmortizacao] = useState('SAC'); // SAC como padrão
+  const [tipoAmortizacao, setTipoAmortizacao] = useState('PRICE'); // Padrão
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -18,10 +18,10 @@ function AmortizacaoForm({ onCalcular }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 bg-white shadow rounded-lg space-y-3">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-gray-700 text-sm font-bold mb-1" htmlFor="principalAmortizacao">
-          Principal do Empréstimo:
+          Valor do Empréstimo (R$):
         </label>
         <input
           type="number"
@@ -65,21 +65,21 @@ function AmortizacaoForm({ onCalcular }) {
         <select
           id="tipoAmortizacao"
           className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-value={tipoAmortizacao}
-onChange={(e) => setTipoAmortizacao(e.target.value)}
->
-<option value="SAC">SAC</option>
-<option value="PRICE">Tabela Price</option>
-</select>
-</div>
-<button
-type="submit"
-className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
->
-Calcular Amortização
-</button>
-</form>
-);
+          value={tipoAmortizacao}
+          onChange={(e) => setTipoAmortizacao(e.target.value)}
+        >
+          <option value="PRICE">Price</option>
+          <option value="SAC">SAC</option>
+        </select>
+      </div>
+      <button
+        type="submit"
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+      >
+        Calcular
+      </button>
+    </form>
+  );
 }
 
 export default AmortizacaoForm;
