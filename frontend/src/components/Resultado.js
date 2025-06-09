@@ -1,127 +1,331 @@
-// frontend/src/components/Resultado.js
-import React from 'react';
+import React, { forwardRef } from 'react';
+// Importações necessárias para o Chart.js e react-chartjs-2
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { Line } from 'react-chartjs-2';
 
-function Resultado({ resultado, tipo }) {
-  if (!resultado) {
+// Registro dos componentes do Chart.js que serão utilizados
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
+// Usamos forwardRef para que possamos passar a ref do App.js para cá
+const Resultado = forwardRef(({ resultado, tipo }, ref) => {
+  if (!resultado || Object.keys(resultado).length === 0) {
     return null;
   }
 
+  // Estilização para o contêiner do resultado
+  // Este div envolverá o conteúdo específico de cada tipo de resultado
+  const ResultContainer = ({ children }) => (
+    // Aumentei o max-w-2xl para max-w-3xl para dar mais espaço.
+    // O 'mx-auto' centraliza o container.
+    <div ref={ref} className="bg-gray-50 p-6 rounded-lg shadow-inner border border-gray-200 mt-4 max-w-3xl mx-auto">
+      {children}
+    </div>
+  );
+
+  // Tratamento de Erro - Ajustado para cor menos chamativa (preto/cinza)
   if (resultado.erro) {
     return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4" role="alert">
-        <strong className="font-bold">Erro:</strong>
-        <span className="block sm:inline"> {resultado.erro}</span>
+      <div ref={ref} className="text-center p-4 bg-gray-100 border border-gray-400 text-gray-700 rounded-md mt-4 max-w-3xl mx-auto">
+        <p className="font-semibold">Erro:</p>
+        <p>{resultado.erro}</p>
       </div>
     );
   }
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-  };
+  // --- Renderização para Juros Compostos ---
+  if (tipo === 'juros' && resultado.montante_final !== undefined) {
+    const colorClass = "text-blue-700";
+    const maxTableHeight = 'max-h-96';
+    const tableOverflowClass = 'overflow-y-auto'; 
 
-  return (
-    <div className="mt-6 p-6 bg-gray-100 shadow rounded-lg">
-      <h3 className="text-xl font-semibold mb-4 text-gray-800">Resultado do Cálculo:</h3>
-      
-      {tipo === 'juros' && (
-        <div>
-          <p className="text-2xl font-bold text-blue-800">
-            Valor Final (Juros Compostos): {formatCurrency(resultado.valor_final)}
-          </p>
-        </div>
-      )}
+    return (
+      <ResultContainer>
+        <h3 className="text-2xl font-semibold text-blue-700 mb-4 text-center">Resultado dos Juros Compostos</h3>
+        
+        <p className="text-gray-800 mb-2">
+          <span className="font-semibold text-blue-600">Montante Final:</span> R$ {resultado.montante_final.toFixed(2)}
+        </p>
+        <p className="text-gray-800 mb-2">
+          <span className="font-semibold text-blue-600">Total de Juros:</span> R$ {resultado.total_juros.toFixed(2)}
+        </p>
+        <p className="text-gray-800 mb-4">
+          <span className="font-semibold text-blue-600">Período:</span> {resultado.periodo} meses
+        </p>
 
-      {tipo === 'amortizacao' && (
-        <div className="overflow-x-auto">
-          <h4 className="text-lg font-medium mb-2">Tabela de Amortização</h4>
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mês</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amortização</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Juros</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parcela</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Devedor</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {resultado.parcelas.map((parcela, index) => (
-                <tr key={index}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{parcela.mes}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(parcela.valor_amortizacao)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(parcela.valor_juros)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(parcela.valor_parcela)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(parcela.saldo_devedor)}</td>
+        <h4 className="text-xl font-semibold text-blue-700 mb-3">Evolução do Montante (Mês a Mês):</h4>
+        <div className={`${maxTableHeight} ${tableOverflowClass} w-full`}>
+          {resultado.evolucao_montante && resultado.evolucao_montante.length > 0 ? (
+            <table className="min-w-full bg-white border border-gray-300 rounded-md">
+              <thead>
+                <tr className="bg-gray-100 text-gray-700 uppercase text-sm leading-normal">
+                  <th className="py-3 px-6 text-left">Mês</th>
+                  <th className="py-3 px-6 text-left">Montante</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {tipo === 'comparacao' && (
-        <div className="space-y-6">
-          {resultado.decisao_sugerida && (
-              <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4" role="alert">
-                <strong className="font-bold">Sugestão:</strong>
-                <span className="block sm:inline"> {resultado.decisao_sugerida}</span>
-              </div>
-          )}
-
-          {/* Resultado do Investimento */}
-          <div className="p-4 bg-white rounded shadow">
-            <h4 className="text-lg font-medium mb-2 text-purple-700">Cenário de Investimento:</h4>
-            <p><strong>Valor Desejado:</strong> {formatCurrency(resultado.emprestimo.principal)}</p>            
-            <p><strong>Investindo {formatCurrency(resultado.investimento.investimento_mensal)} por mês (Taxa aplicada: {resultado.investimento.taxa_anual_aplicada}% a.a.):</strong></p>
-            <p className="ml-4"> - Tempo para atingir: <span className="font-bold">{resultado.investimento.meses_para_atingir} meses</span></p>
-            <p className="ml-4"> - Total Investido pelo Usuário: <span className="font-bold">{formatCurrency(resultado.investimento.total_investido_pelo_usuario)}</span></p>
-            <p className="ml-4"> - Total de Rendimentos Ganhos: <span className="font-bold text-green-700">{formatCurrency(resultado.investimento.total_rendimentos)}</span></p>
-            <p className="ml-4"> - Valor Final Acumulado: <span className="font-bold">{formatCurrency(resultado.investimento.valor_final_atingido)}</span></p>
-            {resultado.investimento.mensagem && <p className="text-sm text-gray-600 mt-2">{resultado.investimento.mensagem}</p>}
-          </div>
-
-          {/* Resultado do Empréstimo */}
-          <div className="p-4 bg-white rounded shadow">
-            <h4 className="text-lg font-medium mb-2 text-red-700">Cenário de Empréstimo (Valor do Item como Principal):</h4>
-            <p><strong>Principal:</strong> {formatCurrency(resultado.emprestimo.principal)}</p>
-            <p><strong>Taxa de Juros:</strong> {resultado.emprestimo.taxa_mensal_percentual}% ao mês</p>
-            <p><strong>Período:</strong> {resultado.emprestimo.periodo_meses} meses</p>
-            <p className="ml-4"> - Total de Juros Pagos: <span className="font-bold text-red-700">{formatCurrency(resultado.emprestimo.total_juros_pagos)}</span></p>
-            <p className="ml-4"> - Custo Total do Empréstimo (Principal + Juros): <span className="font-bold">{formatCurrency(resultado.emprestimo.total_pago)}</span></p>
-            
-            {/* Opcional: Tabela de amortização do empréstimo na comparação, se desejado */}
-            
-            <h5 className="text-md font-medium mt-4 mb-2">Detalhes das Parcelas do Empréstimo:</h5>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mês</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parcela</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Juros</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amortização</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Devedor</th>
+              </thead>
+              <tbody className="text-gray-600 text-sm font-light">
+                {resultado.evolucao_montante.map((item, index) => (
+                  <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
+                    <td className="py-3 px-6 text-left whitespace-nowrap">{item.mes}</td>
+                    <td className="py-3 px-6 text-left whitespace-nowrap">R$ {item.montante.toFixed(2)}</td>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {resultado.emprestimo.parcelas.map((parcela, index) => (
-                    <tr key={index}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{parcela.mes}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(parcela.valor_parcela)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(parcela.valor_juros)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(parcela.valor_amortizacao)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(parcela.saldo_devedor)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-          </div>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-gray-500 text-center">Nenhum dado de evolução disponível.</p>
+          )}
         </div>
-      )}
+      </ResultContainer>
+    );
+  }
+
+  // --- Renderização para Amortização de Empréstimo ---
+  if (tipo === 'amortizacao' && resultado.tabela_amortizacao) {
+    const maxTableHeight = 'max-h-96';
+    const tableOverflowClass = 'overflow-y-auto'; 
+
+    return (
+      <ResultContainer>
+        <h3 className="text-2xl font-semibold text-green-700 mb-4 text-center">Tabela de Amortização</h3>
+        <div className="mb-4 text-gray-700">
+          {resultado.valor_emprestimo !== undefined && <p><span className="font-semibold text-green-600">Valor Total do Empréstimo:</span> R$ {resultado.valor_emprestimo.toFixed(2)}</p>}
+          {resultado.taxa_juros_mensal !== undefined && <p><span className="font-semibold text-green-600">Taxa de Juros Mensal:</span> {resultado.taxa_juros_mensal.toFixed(2)}%</p>}
+          {resultado.total_parcelas !== undefined && <p><span className="font-semibold text-green-600">Total de Parcelas:</span> {resultado.total_parcelas}</p>}
+          {resultado.tipo_amortizacao && <p><span className="font-semibold text-green-600">Sistema de Amortização:</span> {resultado.tipo_amortizacao}</p>}
+          {resultado.total_juros_pagos !== undefined && (
+            <p><span className="font-semibold text-green-600">Total de Juros Pagos:</span> R$ {resultado.total_juros_pagos.toFixed(2)}</p>
+          )}
+          {resultado.primeira_parcela !== undefined && (
+            <p><span className="font-semibold text-green-600">Valor da Primeira Parcela:</span> R$ {resultado.primeira_parcela.toFixed(2)}</p>
+          )}
+          {resultado.ultima_parcela !== undefined && (
+            <p><span className="font-semibold text-green-600">Valor da Última Parcela:</span> R$ {resultado.ultima_parcela.toFixed(2)}</p>
+          )}
+        </div>
+
+        <div className={`${maxTableHeight} ${tableOverflowClass} w-full`}>
+          {resultado.tabela_amortizacao && resultado.tabela_amortizacao.length > 0 ? (
+            <table className="min-w-full bg-white border border-gray-300 rounded-md">
+              <thead>
+                <tr className="bg-gray-100 text-gray-700 uppercase text-sm leading-normal">
+                  <th className="py-3 px-6 text-left">Mês</th>
+                  <th className="py-3 px-6 text-left">Parcela</th>
+                  <th className="py-3 px-6 text-left">Amortização</th>
+                  <th className="py-3 px-6 text-left">Juros</th>
+                  <th className="py-3 px-6 text-left">Saldo Devedor</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-600 text-sm font-light">
+                {resultado.tabela_amortizacao.map((item, index) => (
+                  <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
+                    <td className="py-3 px-6 text-left whitespace-nowrap">{item.mes}</td>
+                    <td className="py-3 px-6 text-left whitespace-nowrap">R$ {item.valor_parcela.toFixed(2)}</td>
+                    <td className="py-3 px-6 text-left whitespace-nowrap">R$ {item.valor_amortizacao.toFixed(2)}</td>
+                    <td className="py-3 px-6 text-left whitespace-nowrap">R$ {item.valor_juros.toFixed(2)}</td>
+                    <td className="py-3 px-6 text-left whitespace-nowrap">R$ {item.saldo_devedor.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-gray-500 text-center">Nenhum dado de amortização disponível.</p>
+          )}
+        </div>
+      </ResultContainer>
+    );
+  }
+
+  // --- Renderização para Comparação de Empréstimo vs. Investimento ---
+  if (tipo === 'comparacao' && resultado) {
+    const { 
+      valor_item_desejado = 0,
+      investimento_mensal_simulado = 0,
+      periodo_comparacao = 0,
+      custo_total_emprestimo = 0,
+      valor_acumulado_investimento = 0,
+      decisao_sugerida = "",
+      insight_investimento = "",
+      comparativo_evolucao = []
+    } = resultado;
+
+    // A cor da decisão será cinza, sem negrito
+    const decisionColorClass = 'text-gray-700';
+
+    // Preparar dados para o gráfico Chart.js
+    const chartData = {
+      labels: comparativo_evolucao.map(item => `Mês ${item.mes}`),
+      datasets: [
+        {
+          label: 'Investimento Acumulado (R$)',
+          data: comparativo_evolucao.map(item => item.investimento_acumulado),
+          borderColor: 'rgb(75, 192, 192)', // Verde-água
+          backgroundColor: 'rgba(75, 192, 192, 0.5)',
+          tension: 0.1,
+          pointRadius: 3, // Tamanho dos pontos
+          pointBackgroundColor: 'rgb(75, 192, 192)',
+          pointBorderColor: '#fff',
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: 'rgb(75, 192, 192)',
+          pointHoverBorderColor: 'rgba(220,220,220,1)',
+        },
+        {
+          label: 'Custo Total do Empréstimo (R$)',
+          data: comparativo_evolucao.map(item => item.custo_total_emprestimo),
+          borderColor: 'rgb(255, 99, 132)', // Vermelho
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+          tension: 0.1,
+          pointRadius: 3,
+          pointBackgroundColor: 'rgb(255, 99, 132)',
+          pointBorderColor: '#fff',
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: 'rgb(255, 99, 132)',
+          pointHoverBorderColor: 'rgba(220,220,220,1)',
+        },
+      ],
+    };
+
+    const chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false, // Permite que o gráfico use o tamanho do contêiner
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            font: {
+              size: 14
+            }
+          }
+        },
+        title: {
+          display: true,
+          text: 'Evolução Comparativa ao Longo do Tempo',
+          font: {
+            size: 16
+          },
+          color: '#333' // Cor do título do gráfico
+        },
+        tooltip: {
+            callbacks: {
+                label: function(context) {
+                    let label = context.dataset.label || '';
+                    if (label) {
+                        label += ': ';
+                    }
+                    if (context.parsed.y !== null) {
+                        label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
+                    }
+                    return label;
+                }
+            }
+        }
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Mês',
+            color: '#555'
+          },
+          grid: {
+            display: false // Oculta as linhas de grade do eixo X
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Valor (R$)',
+            color: '#555'
+          },
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+                return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+            }
+          }
+        },
+      },
+    };
+
+    return (
+      <ResultContainer>
+        <h3 className="text-2xl font-semibold text-purple-700 mb-4 text-center">Resultado da Comparação</h3>
+        
+        <p className="text-gray-800 mb-2">
+          <span className="font-semibold text-purple-600">Valor Desejado do Item:</span> R$ {valor_item_desejado.toFixed(2)}
+        </p>
+        <p className="text-gray-800 mb-2">
+          <span className="font-semibold text-purple-600">Investimento Mensal / Parcela Sim.:</span> R$ {investimento_mensal_simulado.toFixed(2)}
+        </p>
+        <p className="text-gray-800 mb-4">
+          <span className="font-semibold text-purple-600">Período de Comparação:</span> {periodo_comparacao} meses
+        </p>
+
+        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 mb-4">
+          <h4 className="text-xl font-bold text-purple-700 mb-3">Resumo da Comparação:</h4>
+          <p className="text-gray-800 mb-2">
+            <span className="font-semibold text-purple-600">Custo Total do Empréstimo:</span> R$ {custo_total_emprestimo.toFixed(2)}
+          </p>
+          <p className="text-gray-800 mb-2">
+            <span className="font-semibold text-purple-600">Valor Acumulado Investindo:</span> R$ {valor_acumulado_investimento.toFixed(2)}
+          </p>
+          {/* Decisão Sugerida sem negrito e com cor cinza */}
+          <p className={`text-lg ${decisionColorClass} mt-3`}>
+            Decisão Sugerida: {decisao_sugerida.replace(/\*\*/g, '')} {/* Remove os asteriscos */}
+          </p>
+          {insight_investimento && (
+            <p className="text-gray-700 mt-2 italic text-sm">
+              {insight_investimento}
+            </p>
+          )}
+        </div>
+
+        {comparativo_evolucao && comparativo_evolucao.length > 0 && (
+          <div className="mt-6">
+            <h4 className="text-xl font-semibold text-purple-700 mb-3 text-center">Gráfico Comparativo</h4>
+            
+            {/* Renderização do gráfico */}
+            <div className="w-full h-80 mb-6"> {/* Defina uma altura fixa ou use classes Tailwind para altura */}
+              <Line data={chartData} options={chartOptions} />
+            </div>
+
+            {/* Tabela de evolução da comparação */}
+            <h4 className="text-xl font-semibold text-purple-700 mb-3 text-center">Detalhes Mês a Mês</h4>
+            <div className="max-h-64 overflow-y-auto w-full">
+              {comparativo_evolucao.length > 0 ? (
+                <table className="min-w-full bg-white border border-gray-300 rounded-md">
+                  <thead>
+                    <tr className="bg-gray-100 text-gray-700 uppercase text-sm leading-normal">
+                      <th className="py-3 px-6 text-left">Mês</th>
+                      <th className="py-3 px-6 text-left">Investimento Acumulado</th>
+                      <th className="py-3 px-6 text-left">Custo Total do Empréstimo</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-gray-600 text-sm font-light">
+                    {comparativo_evolucao.map((item, index) => (
+                      <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
+                        <td className="py-3 px-6 text-left whitespace-nowrap">{item.mes}</td>
+                        <td className="py-3 px-6 text-left whitespace-nowrap">R$ {item.investimento_acumulado.toFixed(2)}</td>
+                        <td className="py-3 px-6 text-left whitespace-nowrap">R$ {item.custo_total_emprestimo.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-gray-500 text-center">Nenhum dado de evolução da comparação disponível.</p>
+              )}
+            </div>
+          </div>
+        )}
+      </ResultContainer>
+    );
+  }
+
+  // Se nenhum tipo de resultado correspondente for encontrado
+  return (
+    <div ref={ref} className="text-center p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-md mt-4 max-w-3xl mx-auto">
+      <p>Nenhum resultado para exibir ou tipo de cálculo desconhecido.</p>
     </div>
   );
-}
+});
 
 export default Resultado;

@@ -1,31 +1,29 @@
-// frontend/src/App.js
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import JurosCompostosForm from './components/JurosCompostosForm';
 import AmortizacaoForm from './components/AmortizacaoForm';
 import ComparacaoForm from './components/ComparacaoForm';
 import Resultado from './components/Resultado';
+import Home from './components/Home';
+import Info from './components/Info';
+
+import './App.css'; 
 
 function App() {
-  const [resultadoJurosCompostos, setResultadoJurosCompostos] = useState(null);
-  const [resultadoAmortizacao, setResultadoAmortizacao] = useState(null);
-  const [resultadoComparacao, setResultadoComparacao] = useState(null);
+  const [resultado, setResultado] = useState(null);
+  const [tipoCalculo, setTipoCalculo] = useState('');
+  const [activeTab, setActiveTab] = useState('jurosCompostos'); 
+  const [secaoAtiva, setSecaoAtiva] = useState('home'); 
   
-  // Estado para controlar qual aba está ativa (inicializa com 'juros' por exemplo)
-  const [abaAtiva, setAbaAtiva] = useState('juros'); 
-  // Estado para qual cálculo gerou o resultado (para exibir o tipo correto na área de resultados)
-  const [resultadoTipo, setResultadoTipo] = useState(null); 
+  const resultadoRef = useRef(null); 
 
-  // Função auxiliar para limpar todos os resultados e definir o tipo de resultado ativo
-  const resetAndSetResult = (result, type) => {
-    setResultadoJurosCompostos(null);
-    setResultadoAmortizacao(null);
-    setResultadoComparacao(null);
-    
-    if (type === 'juros') setResultadoJurosCompostos(result);
-    else if (type === 'amortizacao') setResultadoAmortizacao(result);
-    else if (type === 'comparacao') setResultadoComparacao(result);
-    
-    setResultadoTipo(type); // Define qual tipo de resultado deve ser exibido
+  const resetAndSetResult = (data, tipo) => {
+    setResultado(data);
+    setTipoCalculo(tipo);
+    setTimeout(() => {
+      if (resultadoRef.current) {
+        resultadoRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   const handleCalcularJurosCompostos = async (dados) => {
@@ -37,11 +35,15 @@ function App() {
         },
         body: JSON.stringify(dados),
       });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.erro || 'Erro desconhecido ao calcular juros compostos');
+      }
       const data = await response.json();
       resetAndSetResult(data, 'juros');
     } catch (error) {
       console.error('Erro ao calcular juros compostos:', error);
-      resetAndSetResult({ erro: 'Erro ao calcular' }, 'juros');
+      resetAndSetResult({ erro: error.message || 'Erro ao calcular juros compostos. Verifique o servidor.' }, 'juros');
     }
   };
 
@@ -54,11 +56,15 @@ function App() {
         },
         body: JSON.stringify(dados),
       });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.erro || 'Erro desconhecido ao calcular amortização');
+      }
       const data = await response.json();
       resetAndSetResult(data, 'amortizacao');
     } catch (error) {
       console.error('Erro ao calcular amortização:', error);
-      resetAndSetResult({ erro: 'Erro ao calcular' }, 'amortizacao');
+      resetAndSetResult({ erro: error.message || 'Erro ao calcular amortização. Verifique o servidor.' }, 'amortizacao');
     }
   };
 
@@ -71,86 +77,149 @@ function App() {
         },
         body: JSON.stringify(dados),
       });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.erro || 'Erro desconhecido ao comparar investimento/empréstimo');
+      }
       const data = await response.json();
       resetAndSetResult(data, 'comparacao');
     } catch (error) {
       console.error('Erro ao comparar investimento/empréstimo:', error);
-      resetAndSetResult({ erro: 'Erro ao comparar' }, 'comparacao');
+      resetAndSetResult({ erro: error.message || 'Erro ao comparar investimento/empréstimo. Verifique o servidor.' }, 'comparacao');
+    }
+  };
+
+  const setCalculatorTab = (tabName) => {
+    setActiveTab(tabName);
+    setResultado(null); 
+  };
+
+  const setMainSection = (sectionName) => {
+    setSecaoAtiva(sectionName);
+    setResultado(null); 
+    if (sectionName === 'calculadora') {
+      setActiveTab('jurosCompostos'); 
+    } else {
+        setActiveTab('jurosCompostos'); 
+    }
+  };
+
+  // Cores originais (mais saturadas)
+  const getBorderColorClass = () => {
+    switch (activeTab) {
+      case 'jurosCompostos':
+        return 'border-blue-600'; // Azul original
+      case 'amortizacao':
+        return 'border-green-600'; // Verde original
+      case 'comparacao':
+        return 'border-purple-600'; // Roxo original
+      default:
+        return 'border-gray-300'; 
+    }
+  };
+
+  // Cores originais (mais saturadas)
+  const getTabBgColorClass = (tabName) => {
+    switch (tabName) {
+        case 'jurosCompostos':
+            return 'bg-blue-600'; // Azul original
+        case 'amortizacao':
+            return 'bg-green-600'; // Verde original
+        case 'comparacao':
+            return 'bg-purple-600'; // Roxo original
+        default:
+            return 'bg-gray-200';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center">
-      <nav className="w-full bg-blue-700 shadow-md py-4">
-        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
-          <h1 className="text-3xl font-bold text-white mb-3 md:mb-0">Calculadora Financeira</h1>
-          <div className="flex space-x-4">
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
+      <h1 className="text-4xl font-bold text-gray-800 mb-8">Calculadora Financeira</h1>
+
+      {/* Navbar Principal Global */}
+      <nav className="flex space-x-4 mb-8">
+        <button
+          className={`px-6 py-3 rounded-lg text-lg font-medium ${secaoAtiva === 'home' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`} // Indigo original
+          onClick={() => setMainSection('home')}
+        >
+          Início
+        </button>
+        <button
+          className={`px-6 py-3 rounded-lg text-lg font-medium ${secaoAtiva === 'calculadora' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+          onClick={() => setMainSection('calculadora')}
+        >
+          Calculadora
+        </button>
+        <button
+          className={`px-6 py-3 rounded-lg text-lg font-medium ${secaoAtiva === 'info' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+          onClick={() => setMainSection('info')}
+        >
+          Informações
+        </button>
+      </nav>
+
+      {/* Renderização do Conteúdo Principal (Home, Info, ou o Bloco da Calculadora) */}
+      {secaoAtiva === 'home' && (
+        <Home setSecaoAtiva={setMainSection} setActiveTab={setCalculatorTab} />
+      )}
+      {secaoAtiva === 'info' && (
+        // O Info.js já deve estar com as cores originais se você reverteu lá
+        <Info />
+      )}
+
+      {secaoAtiva === 'calculadora' && (
+        <div className="w-full max-w-3xl flex flex-col items-center"> 
+          {/* Abas da Calculadora */}
+          <div className="flex w-full justify-center -mb-px relative z-10">
             <button
-              onClick={() => { setAbaAtiva('juros'); resetAndSetResult(null, null); }}
-              className={`px-4 py-2 rounded-lg font-semibold transition-colors duration-300 ${
-                abaAtiva === 'juros' ? 'bg-blue-500 text-white shadow-lg' : 'text-blue-100 hover:bg-blue-600'
-              }`}
+              className={`flex-1 py-2 text-lg font-medium transition duration-300 rounded-t-lg 
+                ${activeTab === 'jurosCompostos' ? `${getTabBgColorClass('jurosCompostos')} text-white shadow-md` : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}
+                ${activeTab === 'jurosCompostos' ? 'relative -top-px' : ''} `}
+              onClick={() => setCalculatorTab('jurosCompostos')}
             >
               Juros Compostos
             </button>
             <button
-              onClick={() => { setAbaAtiva('amortizacao'); resetAndSetResult(null, null); }}
-              className={`px-4 py-2 rounded-lg font-semibold transition-colors duration-300 ${
-                abaAtiva === 'amortizacao' ? 'bg-green-500 text-white shadow-lg' : 'text-green-100 hover:bg-green-600'
-              }`}
+              className={`flex-1 py-2 text-lg font-medium transition duration-300 rounded-t-lg 
+                ${activeTab === 'amortizacao' ? `${getTabBgColorClass('amortizacao')} text-white shadow-md` : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}
+                ${activeTab === 'amortizacao' ? 'relative -top-px' : ''} `}
+              onClick={() => setCalculatorTab('amortizacao')}
             >
               Amortização
             </button>
             <button
-              onClick={() => { setAbaAtiva('comparacao'); resetAndSetResult(null, null); }}
-              className={`px-4 py-2 rounded-lg font-semibold transition-colors duration-300 ${
-                abaAtiva === 'comparacao' ? 'bg-purple-500 text-white shadow-lg' : 'text-purple-100 hover:bg-purple-600'
-              }`}
+              className={`flex-1 py-2 text-lg font-medium transition duration-300 rounded-t-lg 
+                ${activeTab === 'comparacao' ? `${getTabBgColorClass('comparacao')} text-white shadow-md` : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}
+                ${activeTab === 'comparacao' ? 'relative -top-px' : ''} `}
+              onClick={() => setCalculatorTab('comparacao')}
             >
               Empréstimo vs. Investimento
             </button>
           </div>
-        </div>
-      </nav>
 
-      <div className="flex-grow container mx-auto p-4 max-w-4xl mt-8 flex flex-col items-center">
-        {/* Container centralizado para o formulário */}
-        <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl mb-8">
-          {abaAtiva === 'juros' && (
-            <>
-              <h2 className="text-2xl font-semibold mb-6 text-blue-800 text-center">Calcular Juros Compostos</h2>
+          {/* O container do formulário agora terá a borda colorida dinâmica */}
+          <div className={`bg-white p-6 rounded-b-xl shadow-md border-t-4 ${getBorderColorClass()} w-full max-w-3xl`}>
+            {/* Renderização do Formulário ativo dentro do card */}
+            {activeTab === 'jurosCompostos' && (
               <JurosCompostosForm onCalcular={handleCalcularJurosCompostos} />
-            </>
-          )}
-
-          {abaAtiva === 'amortizacao' && (
-            <>
-              <h2 className="text-2xl font-semibold mb-6 text-green-800 text-center">Calcular Amortização de Empréstimo</h2>
+            )}
+            {activeTab === 'amortizacao' && (
               <AmortizacaoForm onCalcular={handleCalcularAmortizacao} />
-            </>
-          )}
-
-          {abaAtiva === 'comparacao' && (
-            <>
-              <h2 className="text-2xl font-semibold mb-6 text-purple-800 text-center">Comparar Empréstimo vs. Investimento</h2>
+            )}
+            {activeTab === 'comparacao' && (
               <ComparacaoForm onComparar={handleCompararInvestimentoEmprestimo} />
-            </>
-          )}
+            )}
+            
+            {/* Resultado da calculadora (agora dentro do mesmo card e com ref) */}
+            {resultado && (
+              <div ref={resultadoRef} className="mt-8"> {/* Adicionado mt-8 para espaçamento */}
+                {/* O componente Resultado será renderizado aqui e terá sua própria estilização interna */}
+                <Resultado resultado={resultado} tipo={tipoCalculo} />
+              </div>
+            )}
+          </div>
         </div>
-
-        {/* Área de Resultados */}
-        <div className="w-full max-w-2xl">
-          {resultadoTipo === 'juros' && resultadoJurosCompostos && (
-            <Resultado resultado={resultadoJurosCompostos} tipo="juros" />
-          )}
-          {resultadoTipo === 'amortizacao' && resultadoAmortizacao && (
-            <Resultado resultado={resultadoAmortizacao} tipo="amortizacao" />
-          )}
-          {resultadoTipo === 'comparacao' && resultadoComparacao && (
-            <Resultado resultado={resultadoComparacao} tipo="comparacao" />
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 }
