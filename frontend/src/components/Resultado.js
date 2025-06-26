@@ -1,28 +1,25 @@
 import React, { forwardRef } from 'react';
-// Importações necessárias para o Chart.js e react-chartjs-2
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
-// Registro dos componentes do Chart.js que serão utilizados
+
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-// Usamos forwardRef para que possamos passar a ref do App.js para cá
+
 const Resultado = forwardRef(({ resultado, tipo }, ref) => {
   if (!resultado || Object.keys(resultado).length === 0) {
     return null;
   }
 
-  // Estilização para o contêiner do resultado
-  // Este div envolverá o conteúdo específico de cada tipo de resultado
+
   const ResultContainer = ({ children }) => (
-    // Aumentei o max-w-2xl para max-w-3xl para dar mais espaço.
-    // O 'mx-auto' centraliza o container.
+
     <div ref={ref} className="bg-gray-50 p-6 rounded-lg shadow-inner border border-gray-200 mt-4 max-w-3xl mx-auto">
       {children}
     </div>
   );
 
-  // Tratamento de Erro - Ajustado para cor menos chamativa (preto/cinza)
+
   if (resultado.erro) {
     return (
       <div ref={ref} className="text-center p-4 bg-gray-100 border border-gray-400 text-gray-700 rounded-md mt-4 max-w-3xl mx-auto">
@@ -148,20 +145,20 @@ const Resultado = forwardRef(({ resultado, tipo }, ref) => {
       comparativo_evolucao = []
     } = resultado;
 
-    // A cor da decisão será cinza, sem negrito
+ 
     const decisionColorClass = 'text-gray-700';
 
-    // Preparar dados para o gráfico Chart.js
+
     const chartData = {
       labels: comparativo_evolucao.map(item => `Mês ${item.mes}`),
       datasets: [
         {
           label: 'Investimento Acumulado (R$)',
           data: comparativo_evolucao.map(item => item.investimento_acumulado),
-          borderColor: 'rgb(75, 192, 192)', // Verde-água
+          borderColor: 'rgb(75, 192, 192)', 
           backgroundColor: 'rgba(75, 192, 192, 0.5)',
           tension: 0.1,
-          pointRadius: 3, // Tamanho dos pontos
+          pointRadius: 3, 
           pointBackgroundColor: 'rgb(75, 192, 192)',
           pointBorderColor: '#fff',
           pointHoverRadius: 5,
@@ -171,7 +168,7 @@ const Resultado = forwardRef(({ resultado, tipo }, ref) => {
         {
           label: 'Custo Total do Empréstimo (R$)',
           data: comparativo_evolucao.map(item => item.custo_total_emprestimo),
-          borderColor: 'rgb(255, 99, 132)', // Vermelho
+          borderColor: 'rgb(255, 99, 132)', 
           backgroundColor: 'rgba(255, 99, 132, 0.5)',
           tension: 0.1,
           pointRadius: 3,
@@ -186,7 +183,7 @@ const Resultado = forwardRef(({ resultado, tipo }, ref) => {
 
     const chartOptions = {
       responsive: true,
-      maintainAspectRatio: false, // Permite que o gráfico use o tamanho do contêiner
+      maintainAspectRatio: false, 
       plugins: {
         legend: {
           position: 'top',
@@ -202,7 +199,7 @@ const Resultado = forwardRef(({ resultado, tipo }, ref) => {
           font: {
             size: 16
           },
-          color: '#333' // Cor do título do gráfico
+          color: '#333' 
         },
         tooltip: {
             callbacks: {
@@ -227,7 +224,7 @@ const Resultado = forwardRef(({ resultado, tipo }, ref) => {
             color: '#555'
           },
           grid: {
-            display: false // Oculta as linhas de grade do eixo X
+            display: false 
           }
         },
         y: {
@@ -268,9 +265,9 @@ const Resultado = forwardRef(({ resultado, tipo }, ref) => {
           <p className="text-gray-800 mb-2">
             <span className="font-semibold text-purple-600">Valor Acumulado Investindo:</span> R$ {valor_acumulado_investimento.toFixed(2)}
           </p>
-          {/* Decisão Sugerida sem negrito e com cor cinza */}
+
           <p className={`text-lg ${decisionColorClass} mt-3`}>
-            Decisão Sugerida: {decisao_sugerida.replace(/\*\*/g, '')} {/* Remove os asteriscos */}
+            Decisão Sugerida: {decisao_sugerida.replace(/\*\*/g, '')} 
           </p>
           {insight_investimento && (
             <p className="text-gray-700 mt-2 italic text-sm">
@@ -283,12 +280,12 @@ const Resultado = forwardRef(({ resultado, tipo }, ref) => {
           <div className="mt-6">
             <h4 className="text-xl font-semibold text-purple-700 mb-3 text-center">Gráfico Comparativo</h4>
             
-            {/* Renderização do gráfico */}
-            <div className="w-full h-80 mb-6"> {/* Defina uma altura fixa ou use classes Tailwind para altura */}
+           
+            <div className="w-full h-80 mb-6"> 
               <Line data={chartData} options={chartOptions} />
             </div>
 
-            {/* Tabela de evolução da comparação */}
+
             <h4 className="text-xl font-semibold text-purple-700 mb-3 text-center">Detalhes Mês a Mês</h4>
             <div className="max-h-64 overflow-y-auto w-full">
               {comparativo_evolucao.length > 0 ? (
@@ -320,7 +317,7 @@ const Resultado = forwardRef(({ resultado, tipo }, ref) => {
     );
   }
 
-  // Se nenhum tipo de resultado correspondente for encontrado
+ 
   return (
     <div ref={ref} className="text-center p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-md mt-4 max-w-3xl mx-auto">
       <p>Nenhum resultado para exibir ou tipo de cálculo desconhecido.</p>

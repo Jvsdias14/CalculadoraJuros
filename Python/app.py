@@ -17,8 +17,8 @@ def get_selic_meta_atual():
     url = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json"
     
     try:
-        response = requests.get(url, timeout=5) # Adicionado timeout
-        response.raise_for_status() # Lança exceção para erros HTTP
+        response = requests.get(url, timeout=5) 
+        response.raise_for_status() 
         data = response.json()
         
         if data and len(data) > 0 and 'valor' in data[0]:
@@ -45,8 +45,8 @@ def get_cdi_atual():
     url = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados/ultimos/1?formato=json"
     
     try:
-        response = requests.get(url, timeout=5) # Adicionado timeout
-        response.raise_for_status() # Lança exceção para erros HTTP
+        response = requests.get(url, timeout=5) 
+        response.raise_for_status()
         data = response.json()
         
         if data and len(data) > 0 and 'valor' in data[0]:
@@ -108,8 +108,7 @@ def calcular_parcelas_sac(principal: float, taxa_mensal_percentual: float, perio
         valor_parcela = amortizacao_constante + juros
         saldo_devedor -= amortizacao_constante
         
-        # Ajuste para evitar saldo negativo flutuante no final
-        if saldo_devedor < 0.01 and mes == periodo_meses: # Para a última parcela ser 0
+        if saldo_devedor < 0.01 and mes == periodo_meses:
             saldo_devedor = 0.0
 
         total_juros_pagos += juros
@@ -137,19 +136,19 @@ def calcular_parcelas_price(principal: float, taxa_mensal_percentual: float, per
     if taxa_mensal_decimal == 0:
         valor_parcela = principal / periodo_meses
     else:
-        # Fórmula da parcela Price (PMT)
+        
         try:
             valor_parcela = principal * (taxa_mensal_decimal / (1 - (1 + taxa_mensal_decimal)**(-periodo_meses)))
-        except ZeroDivisionError: # Caso (1 - (1+0)^-periodo) dê zero para periodo muito grande e taxa 0
-            valor_parcela = principal / periodo_meses # Trata como juros zero
+        except ZeroDivisionError: 
+            valor_parcela = principal / periodo_meses 
     
     for mes in range(1, periodo_meses + 1):
         juros = saldo_devedor * taxa_mensal_decimal
         amortizacao = valor_parcela - juros
         saldo_devedor -= amortizacao
 
-        # Ajuste para evitar saldo negativo flutuante no final
-        if saldo_devedor < 0.01 and mes == periodo_meses: # Para a última parcela ser 0
+        
+        if saldo_devedor < 0.01 and mes == periodo_meses:
             saldo_devedor = 0.0
 
         total_juros_pagos += juros
@@ -164,7 +163,6 @@ def calcular_parcelas_price(principal: float, taxa_mensal_percentual: float, per
     return {"tabela_amortizacao": parcelas, "total_juros_pagos": round(total_juros_pagos, 2)}
 
 
-# --- Nova Função de Simulação de Investimento (para Juros Compostos e Comparação) ---
 def simular_crescimento_investimento_mensal(valor_inicial: float, investimento_mensal: float, taxa_mensal_decimal: float, periodo_meses: int):
     """
     Simula o crescimento de um investimento com aportes mensais por um período fixo.
@@ -179,44 +177,37 @@ def simular_crescimento_investimento_mensal(valor_inicial: float, investimento_m
         
     return historico_acumulado
 
-# --- Função de Comparação Aprimorada ---
 def comparar_investimento_emprestimo_api(
     valor_desejado: float, investimento_mensal: float, tipo_investimento: str,
     taxa_investimento_personalizada_anual: float,
     taxa_emprestimo_mensal_percentual: float, periodo_emprestimo_meses: int
 ):
-    # --- Obter Taxas do BCB ---
     selic_meta = get_selic_meta_atual()
     cdi_taxa = get_cdi_atual()
 
     if not selic_meta or not cdi_taxa:
         return {"erro": "Não foi possível obter as taxas financeiras do Banco Central. Tente novamente mais tarde."}
 
-    taxa_investimento_anual_percentual = 0.0 # Inicializa com float
+    taxa_investimento_anual_percentual = 0.0
     
     if tipo_investimento == 'POUPANCA':
         if selic_meta['anual'] > 8.5:
-            # Poupança: 0.5% ao mês + TR (TR geralmente é insignificante, focamos no 0.5%)
             taxa_investimento_anual_percentual = ((1 + 0.005)**12 - 1) * 100 
         else:
             taxa_investimento_anual_percentual = selic_meta['anual'] * 0.70
     elif tipo_investimento == 'TESOURO_SELIC':
         taxa_investimento_anual_percentual = selic_meta['anual']
     elif tipo_investimento == 'CDB_CDI':
-        taxa_investimento_anual_percentual = cdi_taxa['anual'] * 1.0 # Assumindo 100% do CDI
+        taxa_investimento_anual_percentual = cdi_taxa['anual'] * 1.0 
     elif tipo_investimento == 'LCI_LCA':
-        taxa_investimento_anual_percentual = cdi_taxa['anual'] * 0.90 # Assumindo 90% do CDI, isento de IR
+        taxa_investimento_anual_percentual = cdi_taxa['anual'] * 0.90 
     elif tipo_investimento == 'PERSONALIZADO':
         taxa_investimento_anual_percentual = taxa_investimento_personalizada_anual
     else:
         return {"erro": 'Tipo de investimento inválido.'}
 
-    # Converter taxa anual de investimento para mensal decimal para a simulação
     taxa_investimento_mensal_decimal = (1 + (taxa_investimento_anual_percentual / 100))**(1/12) - 1
 
-    # --- Simulação de Empréstimo (com histórico de custo acumulado) ---
-    # Usaremos a função calcular_parcelas_price que já retorna o dicionário com a tabela.
-    # É importante passar a taxa em PERCENTUAL para calcular_parcelas_price.
     resultado_emprestimo = calcular_parcelas_price(valor_desejado, taxa_emprestimo_mensal_percentual, periodo_emprestimo_meses)
     
     if "erro" in resultado_emprestimo:
@@ -226,16 +217,13 @@ def comparar_investimento_emprestimo_api(
     total_juros_emprestimo = resultado_emprestimo['total_juros_pagos']
     total_pago_emprestimo = sum(p['valor_parcela'] for p in parcelas_emprestimo) if parcelas_emprestimo else 0
 
-    # --- Construção do Comparativo de Evolução (Mês a Mês) ---
     comparativo_evolucao_data = []
     saldo_investimento_acumulado = 0.0
     custo_total_emprestimo_acumulado = 0.0
 
     for mes in range(1, periodo_emprestimo_meses + 1):
-        # Evolução do Investimento
         saldo_investimento_acumulado = (saldo_investimento_acumulado + investimento_mensal) * (1 + taxa_investimento_mensal_decimal)
 
-        # Evolução do Custo do Empréstimo
         if mes <= len(parcelas_emprestimo):
             custo_total_emprestimo_acumulado += parcelas_emprestimo[mes-1]['valor_parcela']
         
@@ -245,15 +233,13 @@ def comparar_investimento_emprestimo_api(
             "custo_total_emprestimo": round(custo_total_emprestimo_acumulado, 2)
         })
 
-    # Pega o valor final acumulado do investimento no último mês
     valor_acumulado_investindo = comparativo_evolucao_data[-1]["investimento_acumulado"] if comparativo_evolucao_data else 0
 
-    # --- Decisão Sugerida e Insights ---
+   
     decisao_sugerida = ""
     insight_investimento = ""
     investimento_mensal_necessario = 0.0
 
-    # Cenário principal: O investimento atingiu (ou superou) o valor do item desejado no prazo?
     if valor_acumulado_investindo >= valor_desejado:
         decisao_sugerida = "É **extremamente mais vantajoso investir** para comprar à vista, pois você atingiria o valor do item no prazo desejado e economizaria consideravelmente os juros abusivos do empréstimo."
         economia = max(0, total_pago_emprestimo - valor_acumulado_investindo)
@@ -263,8 +249,6 @@ def comparar_investimento_emprestimo_api(
             f"Isso representa uma economia de R$ {economia:.2f} em comparação com o empréstimo."
         )
     else:
-        # Investimento NÃO atingiu o objetivo no prazo
-        # Cálculo de quanto precisaria investir para atingir o valor desejado
         if periodo_emprestimo_meses > 0:
             if taxa_investimento_mensal_decimal == 0:
                 investimento_mensal_necessario = valor_desejado / periodo_emprestimo_meses
@@ -272,11 +256,11 @@ def comparar_investimento_emprestimo_api(
                 try:
                     investimento_mensal_necessario = (valor_desejado * taxa_investimento_mensal_decimal) / ((1 + taxa_investimento_mensal_decimal)**periodo_emprestimo_meses - 1)
                 except ZeroDivisionError:
-                    investimento_mensal_necessario = valor_desejado # Se o denominador for zero (periodo 0, o que já é tratado)
+                    investimento_mensal_necessario = valor_desejado 
         else:
-            investimento_mensal_necessario = valor_desejado # Se periodo for 0, precisa do valor total
+            investimento_mensal_necessario = valor_desejado 
         
-        if total_pago_emprestimo > (valor_desejado * 1.3): # Exemplo: se o custo do empréstimo é 30% maior que o valor desejado (considerado caro)
+        if total_pago_emprestimo > (valor_desejado * 1.3): 
             decisao_sugerida = (
                 f"O custo total do empréstimo (R$ {total_pago_emprestimo:.2f}) é muito alto. "
                 f"Apesar de não atingir o objetivo de R$ {valor_desejado:.2f} em {periodo_emprestimo_meses} meses investindo (acumulou R$ {valor_acumulado_investindo:.2f}), "
@@ -323,7 +307,7 @@ def rota_calcular_juros_compostos():
     resultado = calcular_juros_compostos(principal, taxa, periodo)
     
     if "erro" in resultado:
-        return jsonify(resultado), 400 # Retorna erro com status 400
+        return jsonify(resultado), 400
     return jsonify(resultado)
 
 @app.route('/calcular_amortizacao', methods=['POST'])
@@ -334,7 +318,6 @@ def rota_calcular_amortizacao():
     periodo = int(data.get('periodo', 0) or 0)
     tipo_amortizacao = data.get('tipo_amortizacao', '').upper()
 
-    # Chame a função de cálculo e verifique se retornou um erro
     if tipo_amortizacao == 'SAC':
         resultado_calculo = calcular_parcelas_sac(principal, taxa, periodo)
     elif tipo_amortizacao == 'PRICE':
@@ -343,7 +326,7 @@ def rota_calcular_amortizacao():
         return jsonify({'erro': 'Tipo de amortização inválido. Escolha SAC ou PRICE.'}), 400
 
     if "erro" in resultado_calculo:
-        return jsonify(resultado_calculo), 400 # Retorna erro com status 400
+        return jsonify(resultado_calculo), 400 
 
     parcelas = resultado_calculo['tabela_amortizacao']
     total_juros_pagos = resultado_calculo['total_juros_pagos']
@@ -372,8 +355,6 @@ def rota_comparar_investimento_emprestimo():
     
     taxa_emprestimo_mensal_percentual = float(data.get('taxa_emprestimo_mensal', 0) or 0)
     periodo_emprestimo_meses = int(data.get('periodo_emprestimo', 0) or 0)
-
-    # Validar entradas para comparação (movido para dentro da função de comparação para centralizar)
     
     resultado = comparar_investimento_emprestimo_api(
         valor_desejado, investimento_mensal, tipo_investimento,
@@ -385,8 +366,6 @@ def rota_comparar_investimento_emprestimo():
         return jsonify(resultado), 500
     return jsonify(resultado)
 
-
-# --- Rota para obter taxas do BCB diretamente para o frontend ---
 @app.route('/obter_taxas_bcb', methods=['GET'])
 def obter_taxas_bcb():
     selic = get_selic_meta_atual()
@@ -401,4 +380,4 @@ def obter_taxas_bcb():
         return jsonify({"erro": "Não foi possível obter as taxas do Banco Central. Tente novamente mais tarde."}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000) # Mantém o debug para desenvolvimento
+    app.run(debug=True, port=5000)

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 
 function Info() {
-  const [activeInfoTab, setActiveInfoTab] = useState('jurosCompostosInfo'); // Estado para controlar a aba de informação ativa
+  const [activeInfoTab, setActiveInfoTab] = useState('jurosCompostosInfo'); 
 
-  // Mapeamento das classes de cor para as abas ativas
+ 
   const getInfoTabColorClass = (tabName) => {
     switch (tabName) {
       case 'jurosCompostosInfo':
@@ -17,7 +17,6 @@ function Info() {
     }
   };
 
-  // Mapeamento das classes de borda para o conteúdo do info (baseado na aba ativa)
   const getInfoBorderColorClass = () => {
     switch (activeInfoTab) {
       case 'jurosCompostosInfo':
@@ -32,9 +31,9 @@ function Info() {
   };
 
   return (
-    // O container principal da seção de informações, que se comportará como o "card"
+   
     <div className="w-full max-w-3xl flex flex-col items-center mb-8">
-      {/* Abas de Navegação das Informações (mesma lógica do App.js) */}
+
       <div className="flex w-full justify-center -mb-px relative z-10">
         <button
           className={`flex-1 py-2 text-lg font-medium transition duration-300 rounded-t-lg 
@@ -62,10 +61,9 @@ function Info() {
         </button>
       </div>
 
-      {/* Conteúdo da Aba de Informação Ativa - AGORA DENTRO DO MESMO CONTAINER COM BORDA DINÂMICA */}
       <div className={`bg-white p-6 rounded-b-xl shadow-md border-t-4 ${getInfoBorderColorClass()} w-full`}>
         {activeInfoTab === 'jurosCompostosInfo' && (
-          <section className="text-left"> {/* Removi o padding e sombra aqui, pois o container pai já faz */}
+          <section className="text-left"> 
             <h3 className="text-2xl font-semibold text-blue-700 mb-3">Juros Compostos</h3>
             <p className="text-gray-700 mb-2">
               Esta seção permite calcular o valor futuro de um investimento com base em um capital inicial, uma taxa de juros e um período. Juros compostos são juros sobre juros, ou seja, os juros ganhos em um período são adicionados ao capital principal para calcular os juros do próximo período.
@@ -104,7 +102,7 @@ function Info() {
                     </li>
                 </ul>
             </div>
-            {/* Mensagem final replicada */}
+ 
             <div className="text-center mt-8">
               <p className="text-lg text-gray-700">
                 Esperamos que esta calculadora seja uma ferramenta útil para suas decisões financeiras!
@@ -155,7 +153,7 @@ function Info() {
                     </li>
                 </ul>
             </div>
-            {/* Mensagem final replicada */}
+
             <div className="text-center mt-8">
               <p className="text-lg text-gray-700">
                 Esperamos que esta calculadora seja uma ferramenta útil para suas decisões financeiras!
@@ -202,7 +200,7 @@ function Info() {
                     </li>
                 </ul>
             </div>
-            {/* Mensagem final replicada */}
+
             <div className="text-center mt-8">
               <p className="text-lg text-gray-700">
                 Esperamos que esta calculadora seja uma ferramenta útil para suas decisões financeiras!
@@ -213,8 +211,8 @@ function Info() {
             </div>
           </section>
         )}
-      </div> {/* Fim do container principal com a borda dinâmica */}
-    </div> // Fim do flex container externo
+      </div> 
+    </div> 
   );
 }
 

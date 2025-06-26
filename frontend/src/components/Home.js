@@ -1,12 +1,10 @@
 import React from 'react';
 
-// Agora Home precisa de duas props:
-// - setSecaoAtiva: para mudar para a seção 'calculadora'
-// - setActiveTab: para definir qual aba da calculadora deve ser ativa
+
 function Home({ setSecaoAtiva, setActiveTab }) { 
   const handleNavigateToCalculator = (tabName) => {
-    setSecaoAtiva('calculadora'); // Primeiro, muda para a seção da calculadora
-    setActiveTab(tabName);       // Depois, define a aba específica dentro da calculadora
+    setSecaoAtiva('calculadora'); 
+    setActiveTab(tabName);
   };
 
   return (

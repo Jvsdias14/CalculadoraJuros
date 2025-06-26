@@ -104,29 +104,27 @@ function App() {
     }
   };
 
-  // Cores originais (mais saturadas)
   const getBorderColorClass = () => {
     switch (activeTab) {
       case 'jurosCompostos':
-        return 'border-blue-600'; // Azul original
+        return 'border-blue-600';
       case 'amortizacao':
-        return 'border-green-600'; // Verde original
+        return 'border-green-600';
       case 'comparacao':
-        return 'border-purple-600'; // Roxo original
+        return 'border-purple-600'; 
       default:
         return 'border-gray-300'; 
     }
   };
 
-  // Cores originais (mais saturadas)
   const getTabBgColorClass = (tabName) => {
     switch (tabName) {
         case 'jurosCompostos':
-            return 'bg-blue-600'; // Azul original
+            return 'bg-blue-600'; 
         case 'amortizacao':
-            return 'bg-green-600'; // Verde original
+            return 'bg-green-600'; 
         case 'comparacao':
-            return 'bg-purple-600'; // Roxo original
+            return 'bg-purple-600'; 
         default:
             return 'bg-gray-200';
     }
@@ -163,7 +161,6 @@ function App() {
         <Home setSecaoAtiva={setMainSection} setActiveTab={setCalculatorTab} />
       )}
       {secaoAtiva === 'info' && (
-        // O Info.js já deve estar com as cores originais se você reverteu lá
         <Info />
       )}
 
@@ -197,7 +194,6 @@ function App() {
             </button>
           </div>
 
-          {/* O container do formulário agora terá a borda colorida dinâmica */}
           <div className={`bg-white p-6 rounded-b-xl shadow-md border-t-4 ${getBorderColorClass()} w-full max-w-3xl`}>
             {/* Renderização do Formulário ativo dentro do card */}
             {activeTab === 'jurosCompostos' && (
@@ -210,10 +206,8 @@ function App() {
               <ComparacaoForm onComparar={handleCompararInvestimentoEmprestimo} />
             )}
             
-            {/* Resultado da calculadora (agora dentro do mesmo card e com ref) */}
             {resultado && (
-              <div ref={resultadoRef} className="mt-8"> {/* Adicionado mt-8 para espaçamento */}
-                {/* O componente Resultado será renderizado aqui e terá sua própria estilização interna */}
+              <div ref={resultadoRef} className="mt-8">
                 <Resultado resultado={resultado} tipo={tipoCalculo} />
               </div>
             )}
